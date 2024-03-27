@@ -20,17 +20,18 @@ class Form(StatesGroup):
 
 
 @dp.message_handler(commands=['start'])
-async def process_start_command(message: types.Message):
+async def process_start_command4(message: types.Message):
     markup = InlineKeyboardMarkup()
     btm1 = InlineKeyboardButton('View the course', callback_data="course")
+    btm3 = InlineKeyboardButton('View the course some', callback_data="coursesome")
     btm2 = InlineKeyboardButton('Enter currency', callback_data="currency")
-    markup.add(btm1, btm2)
+    markup.add(btm1, btm3, btm2)
     current_user = message.from_user.username
     await message.answer(f"Hello, {current_user}!", reply_markup=markup)
 
 
 @dp.message_handler(commands=['currency'])
-async def process_start_command(message: types.Message):
+async def process_start_command3(message: types.Message):
     current_user = message.from_user.username
     photo = open('static/cur.png', 'rb')
     await bot.send_photo(message.chat.id, photo,
@@ -39,7 +40,7 @@ async def process_start_command(message: types.Message):
 
 
 @dp.callback_query_handler(lambda query: query.data == 'course')
-async def process_start_command(callback_query: types.Message):
+async def process_start_command2(callback_query: types.Message):
     markup = InlineKeyboardMarkup(row_width=4)
     lst = []
     for cur_from in currencies:
@@ -54,6 +55,27 @@ async def process_start_command(callback_query: types.Message):
     await callback_query.message.edit_text(f"Hello, {current_user}!", reply_markup=markup)
 
 
+@dp.callback_query_handler(lambda query: query.data == 'coursesome')
+async def process_start_command(callback_query: types.Message):
+    markup = InlineKeyboardMarkup(row_width=2)
+    lst = []
+    for cur_from in currencies:
+        lst.append(InlineKeyboardButton(f'{cur_from}', callback_data=f"some/{cur_from}"))
+    markup.add(*lst)
+    await callback_query.message.edit_text(f"Откуда:", reply_markup=markup)
+
+
+@dp.callback_query_handler(lambda query: query.data[:5] == "some/")
+async def process_start_command1(callback_query: types.Message):
+    data_from = callback_query.data[5:]
+    markup = InlineKeyboardMarkup(row_width=2)
+    lst = []
+    for cur_to in currencies:
+        lst.append(InlineKeyboardButton(f'{cur_to}', callback_data=f"{data_from}{cur_to}"))
+    markup.add(*lst)
+    await callback_query.message.edit_text(f"Куда:", reply_markup=markup)
+
+
 @dp.callback_query_handler(lambda query: query.data.upper() == query.data and len(query.data) == 6)
 async def process_text(callback_query: types.CallbackQuery):
     text_from_btm = callback_query.data
@@ -64,9 +86,10 @@ async def process_text(callback_query: types.CallbackQuery):
 
 
 @dp.callback_query_handler(lambda query: query.data in {"currency"})
-async def process_text(callback_query: types.CallbackQuery):
+async def process_text1(callback_query: types.CallbackQuery):
     await callback_query.message.edit_text(f"Введите сумму:")
     await Form.sum_state.set()
+
 
 @dp.message_handler(state=Form.sum_state)
 async def city(message: types.Message, state: FSMContext):
@@ -82,9 +105,8 @@ async def city(message: types.Message, state: FSMContext):
         await message.answer(f"Вы дурак! ввели неверно /start")
 
 
-
 @dp.message_handler(state=Form.cur_state)
-async def city(message: types.Message, state: FSMContext):
+async def city1(message: types.Message, state: FSMContext):
     valuta = message.text
     async with state.proxy() as data:
         data['valuta'] = valuta.upper()
@@ -93,7 +115,7 @@ async def city(message: types.Message, state: FSMContext):
 
 
 @dp.message_handler(state=Form.cur1_state)
-async def city(message: types.Message, state: FSMContext):
+async def city2(message: types.Message, state: FSMContext):
     valuta_2 = message.text.upper()
     async with state.proxy() as data:
         summ = data.get('summ')
