@@ -9,6 +9,7 @@ bot = Bot(token=TG_token)
 dp = Dispatcher(bot)
 
 
+
 @dp.message_handler(commands=['start'])
 async def process_start_command(message: types.Message):
     markup = InlineKeyboardMarkup()
